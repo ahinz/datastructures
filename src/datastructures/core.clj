@@ -52,6 +52,48 @@
       :else
       (recur (stail l) v (- i 1) (scons (shead l) x)))))
 
+(defn supdate
+  "Update a index i to value v"
+  ([l v i] (supdate l v i SNil))
+  ([l v i x]
+     (cond
+      (= l SNil)
+      (sreverse x)
+
+      (= i 0)
+      (recur (stail l) v (- i 1) (scons v x))
+
+      :else
+      (recur (stail l) v (- i 1) (scons (shead l) x)))))
+
+(defn sindex
+  "Get the index of a value or -1 if it doesn't exist"
+  ([l v] (sindex l v identity))
+  ([l v f] (sindex l v 0 f))
+  ([l v i f]
+     (cond
+      (or (= nil l) (= SNil l))
+      -1
+
+      (= (f (shead l)) v)
+      i
+
+      :else
+      (recur (stail l) v (+ i 1) f))))
+
+(defn sget
+  "Get the value at a given index"
+  [l i]
+  (cond
+   (or (= l nil) (= l SNil) (< i 0))
+   nil
+
+   (= i 0)
+   (shead l)
+
+   :else
+   (sget (stail l) (- i 1))))
+
 (defn sdelete
   "Delete a value at index i from the linked list"
   ([l i] (sdelete l i SNil))
