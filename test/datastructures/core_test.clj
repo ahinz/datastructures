@@ -2,6 +2,41 @@
   (:use clojure.test
         datastructures.core))
 
+(deftest test-open-addr-hash
+
+  (testing "Insertion/Update"
+    (let [h (ohmake)]
+      (ohinsert h 9 2)
+
+      (is (= (ohcontains h 9) true))
+      (is (= (ohget h 9) 2))
+
+      (is (= (ohcontains h 8) false))
+      (is (= (ohget h 8) nil))
+
+      (ohinsert h 9 5)
+      (is (= (ohget h 9) 5))
+
+      (ohinsert h 10 5)
+      (ohinsert h 11 130)
+
+      (is (= (ohget h 9) 5))
+      (is (= (ohget h 10) 5))
+      (is (= (ohget h 11) 130))
+
+      (is (= (ohtoclj h) {9 5 10 5 11 130}))))
+
+  (testing "Conflicts"
+    (let [h (ohmake 2)] ;; Two elements
+      (ohinsert h 9 2)
+      (ohinsert h 9 5) ;; Test overwrite
+      (ohinsert h 10 5)
+      (ohinsert h 11 130)
+      (ohinsert h 139244 99)
+      (ohinsert h 8 42)
+
+      (is (= (ohtoclj h) {9 5 10 5 11 130 8 42 139244 99})))))
+
 (deftest single-list
 
   ; 9 : 10 : 13 : 11 : 99 : Nil

@@ -107,3 +107,55 @@
 
       :else
       (recur (stail l) (- i 1) (scons (shead l) x)))))
+
+;; Open addressing hash table
+
+(defn ohmake
+  "Create a new (mutable) open-address hash table"
+  ([] (ohmake 10))
+  ([n] (object-array n)))
+
+(defn ohinsert
+  "Insert a k,v pair into the hashmap"
+  [h k v]
+  (let [hashed-k (mod k (alength h))
+        existing (aget h hashed-k)]
+    (if (= nil existing)
+      (aset h hashed-k (scons (scons k v) SNil))
+      (let [i (sindex existing k shead)]
+        (aset h hashed-k
+              (if (= -1 i)
+                (scons (scons k v) existing)
+                (supdate existing (scons k v) i))))))
+  h)
+
+(defn ohcontains
+  "Determine if a given key is in a hashmap"
+  [h k]
+  (let [hashed-k (mod k (alength h))
+        lst (aget h hashed-k)]
+    (not= -1 (sindex lst k shead))))
+
+(defn ohget
+  "Get a key from the hash. If the key doesn't exist return nil. Note that
+   it is allowable to store nils so if you do store nils in the hash table
+   you should use ohcontains to determine if the hash contains this key"
+  [h k]
+  (let [hashed-k (mod k (alength h))
+        lst (aget h hashed-k)
+        i (sindex lst k shead)]
+    (if (= -1 i)
+      nil
+      (stail (sget lst i)))))
+
+(defn ohtoclj
+  "Convert open-addressing hash to clojure map"
+  [h]
+  (reduce
+   (fn [hh slist]
+     (loop [l slist
+            hh hh]
+       (if (= l SNil)
+         hh
+         (recur (stail l) (assoc hh (shead (shead l)) (stail (shead l)))))))
+   {} (filter #(not (nil? %)) h)))
