@@ -1,6 +1,7 @@
 (ns datastructures.core)
 
 ;;;;;;;; Singly linked list ;;;;;;;;;;
+
 (deftype SCons [x xs])
 
 (def SNil (SCons. nil nil))
@@ -108,7 +109,7 @@
       :else
       (recur (stail l) (- i 1) (scons (shead l) x)))))
 
-;; Open addressing hash table
+;;;;;;;; Open Addressing Hash Table ;;;;;;;;;;
 
 (defn ohmake
   "Create a new (mutable) open-address hash table"
@@ -159,3 +160,58 @@
          hh
          (recur (stail l) (assoc hh (shead (shead l)) (stail (shead l)))))))
    {} (filter #(not (nil? %)) h)))
+
+;;;;;;;; Graphs ;;;;;;;;;;
+
+(definterface INode
+  (getVisited [])
+  (setVisited [r]))
+
+(deftype Node
+    [value ^:volatile-mutable visited]
+  INode
+  (getVisited [_] visited)
+  (setVisited [this v] (set! visited v)))
+
+(defn node [n] (Node. n false))
+
+(deftype Graph [node edges])
+
+(defn connected
+  "Get a list of nodes that are contected to the given node"
+  [g node]
+  (map
+   second
+   (filter (fn [[n1 _]] (= n1 node)) (.edges g))))
+
+(defn bfs
+  "Breadth first search of the given graph"
+  ([g] (bfs g [(.node g)] (list)))
+  ([g qu rs]
+     (if (empty? qu)
+       (reverse (map #(.value %) rs))
+       (recur
+        g
+        (concat (rest qu) (connected g (first qu)))
+        (conj rs (first qu))))))
+
+(defn dfs
+  "Depth first search of the given graph"
+  ([g] (dfs g [(.node g)] (list)))
+  ([g qu rs]
+     (if (empty? qu)
+       (reverse (map #(.value %) rs))
+       (recur
+        g
+        (concat (connected g (first qu)) (rest qu))
+        (conj rs (first qu))))))
+
+(def n1 (node 1))
+(def n2 (node 2))
+(def n3 (node 3))
+(def n4 (node 4))
+(def n5 (node 5))
+(def n6 (node 6))
+(def n7 (node 7))
+
+(def g1 (Graph. n1 [[n1 n2] [n1 n3] [n2 n4] [n4 n5] [n2 n6] [n5 n7]]))
